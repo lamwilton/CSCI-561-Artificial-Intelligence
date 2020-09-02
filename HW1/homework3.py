@@ -24,6 +24,7 @@ class Agent:
             for line in file:
                 line_temp = tuple(map(int, line.rstrip("\n").split(" ")))
                 self.grids_dict[(line_temp[0], line_temp[1], line_temp[2])] = list(line_temp[3:])
+            assert len(self.grids_dict) == self.number_grids
         return
 
     def check_valid_grid(self, grid):
@@ -53,10 +54,12 @@ class Agent:
             if grid not in self.graph and self.check_valid_grid(grid):
                 self.graph[grid] = {}
 
-            # For every action, find the destination, check if valid, add a node for destination if not exist
+            # For every action, find the destination, check if present in input grid list, add a node for destination if not exist
             for action in actions:
                 new_grid_loc = tuple(map(sum, zip(grid, code_dict[action])))
-                if self.check_valid_grid(grid):
+
+                # If destination not in grid list, it has no action and will not be right answer, so do nothing
+                if new_grid_loc in self.grids_dict:
                     if new_grid_loc not in self.graph:
                         self.graph[new_grid_loc] = {}
 
@@ -64,12 +67,7 @@ class Agent:
                     if self.algorithm == "BFS":
                         self.graph[grid][new_grid_loc] = 1
 
-        # Check if number of grids with actions matches input data
-        number_grids = 0
-        for grid in self.graph.keys():
-            if len(self.graph[grid]) > 0:
-                number_grids += 1
-        assert number_grids == self.number_grids
+        assert len(self.graph) == self.number_grids
         return
 
 
