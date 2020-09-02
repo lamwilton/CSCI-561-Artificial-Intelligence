@@ -32,7 +32,7 @@ class Agent:
         :param grid: tuple (0, 0, 0)
         :return: Valid or not
         """
-        if 0 < grid[0] < self.board_size[0] and 0 < grid[1] < self.board_size[1] and 0 < grid[2] < self.board_size[2]:
+        if 0 <= grid[0] <= self.board_size[0] and 0 <= grid[1] <= self.board_size[1] and 0 <= grid[2] <= self.board_size[2]:
             return True
         return False
 
@@ -52,16 +52,24 @@ class Agent:
             # Add a node for each lines if not exist, also check validity
             if grid not in self.graph and self.check_valid_grid(grid):
                 self.graph[grid] = {}
-            # For every action, add a node for destination if not exist
+
+            # For every action, find the destination, check if valid, add a node for destination if not exist
             for action in actions:
                 new_grid_loc = tuple(map(sum, zip(grid, code_dict[action])))
                 if self.check_valid_grid(grid):
                     if new_grid_loc not in self.graph:
                         self.graph[new_grid_loc] = {}
 
-                # Assign weight and create an edge
-                if self.algorithm == "BFS":
-                    self.graph[grid][new_grid_loc] = 1
+                    # Assign weight and create an edge
+                    if self.algorithm == "BFS":
+                        self.graph[grid][new_grid_loc] = 1
+
+        # Check if number of grids with actions matches input data
+        number_grids = 0
+        for grid in self.graph.keys():
+            if len(self.graph[grid]) > 0:
+                number_grids += 1
+        assert number_grids == self.number_grids
         return
 
 
