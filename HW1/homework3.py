@@ -1,4 +1,5 @@
 from collections import deque
+import queue
 
 
 class Agent:
@@ -40,6 +41,7 @@ class Agent:
             return True
         return False
 
+
     def create_graph(self):
         """
         Create the graph for the grid
@@ -69,6 +71,11 @@ class Agent:
                     # Assign weight and create an edge
                     if self.algorithm == "BFS":
                         self.graph[grid][new_grid_loc] = 1
+                    else:
+                        if 1 <= action <= 6:
+                            self.graph[grid][new_grid_loc] = 10
+                        else:
+                            self.graph[grid][new_grid_loc] = 14
 
         assert len(self.graph) == self.number_grids
         return
@@ -81,7 +88,7 @@ class Agent:
         if self.algorithm == 'BFS':
             return self.bfs()
         elif self.algorithm == "UCS":
-            pass
+            return self.ucs()
         else:
             pass
 
@@ -93,9 +100,14 @@ class Agent:
         visited = set()
         queue = deque()
         parent = {}
+
         # If entrance/goal grid not in graph, I should return FAIL
         if self.start_grid not in self.graph or self.goal_grid not in self.graph:
             return [], 0  # Empty list means FAIL
+        # If entrance is goal
+        if self.start_grid == self.goal_grid:
+            return [(self.start_grid, 0)], 0
+
         queue.append(self.start_grid)
         visited.add(self.start_grid)
         while queue:
@@ -112,6 +124,30 @@ class Agent:
                         result_cost, total_cost = self.compute_cost(path)
                         return result_cost, total_cost
         return [], 0
+
+    def ucs(self):
+        # If entrance/goal grid not in graph, I should return FAIL
+        if self.start_grid not in self.graph or self.goal_grid not in self.graph:
+            return [], 0  # Empty list means FAIL
+        # If entrance is goal
+        if self.start_grid == self.goal_grid:
+            return [(self.start_grid, 0)], 0
+
+        dist = {}
+        pq = queue.PriorityQueue()
+        for node in self.graph:
+            dist[node] = 2 ** 30
+            pq.put((dist[node], node))
+        parent = {}
+        dist[self.start_grid] = 0
+        pq.put((dist[self.start_grid], self.start_grid))
+
+        while not pq.empty():
+            source = pq.get()
+            s = s[0]
+            cost = s[1]
+            # TODO
+        return
 
     def backtrack(self, parent):
         """
