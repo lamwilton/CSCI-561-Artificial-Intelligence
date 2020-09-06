@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import deque
 
 
 class Agent:
@@ -73,6 +73,18 @@ class Agent:
         assert len(self.graph) == self.number_grids
         return
 
+    def search(self):
+        """
+        What search algorithm to use?
+        :return: result path
+        """
+        if self.algorithm == 'BFS':
+            return self.bfs()
+        elif self.algorithm == "UCS":
+            pass
+        else:
+            pass
+
     def bfs(self):
         """
         Do BFS
@@ -96,7 +108,9 @@ class Agent:
 
                     # Goal test
                     if t == self.goal_grid:
-                        return self.backtrack(parent)
+                        path = self.backtrack(parent)
+                        result_cost = self.compute_cost(path)
+                        return result_cost
         return []
 
     def backtrack(self, parent):
@@ -115,11 +129,35 @@ class Agent:
             result.insert(0, current_node)
         return result
 
-    def output_to_file(self, result_path):
-        with open("output.txt", "w+") as file:
-            if len(result_path) == 0:
+    def compute_cost(self, result):
+        """
+        Compute cost of each step and save to kv pair with the path, also total cost
+        :param result: Result path
+        :return: Result path with costs, total cost
+        """
+        if len(result) == 0:  # If FAIL
+            return []
+        total_cost = 0
+        result_cost = [(result[0], 0)]  # Start with start grid with 0 cost
+        for i in range(1, len(result)):
+            if self.algorithm == "BFS":
+                result_cost.append((result[i], 1))  # All steps has 1 cost
+                total_cost += 1
+        return result_cost, total_cost
+
+    def output_to_file(self, result_cost, total_cost):
+        if len(result_cost) == 0:
+            with open("output.txt", "w+") as file:
                 file.write("FAIL")
-                return
+            return
+        with open("output.txt", "w+") as file:
+            file.write(str(total_cost))
+            file.write("\n")
+            file.write(str(len(result_cost)))
+            file.write("\n")
+            for node in result_cost:
+                file.write(" ".join([str(node[0][0]), str(node[0][1]), str(node[0][2]), str(node[1])]))
+                file.write("\n")
 
 
 if __name__ == '__main__':
@@ -127,5 +165,6 @@ if __name__ == '__main__':
     agent = Agent()
     agent.input_data(input_path)
     agent.create_graph()
-    result_path = agent.bfs()
-    print()
+    result_cost, total_cost = agent.search()
+    agent.output_to_file(result_cost, total_cost)
+
