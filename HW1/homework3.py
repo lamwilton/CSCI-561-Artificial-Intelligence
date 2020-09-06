@@ -1,3 +1,6 @@
+from collections import defaultdict, deque
+
+
 class Agent:
     def __init__(self):
         self.algorithm = ''
@@ -70,10 +73,59 @@ class Agent:
         assert len(self.graph) == self.number_grids
         return
 
+    def bfs(self):
+        """
+        Do BFS
+        :return: Answer or FAIL if no solution
+        """
+        visited = set()
+        queue = deque()
+        parent = {}
+        # If entrance/goal grid not in graph, I should return FAIL
+        if self.start_grid not in self.graph or self.goal_grid not in self.graph:
+            return []  # Empty list means FAIL
+        queue.append(self.start_grid)
+        visited.add(self.start_grid)
+        while queue:
+            s = queue.popleft()
+            for t in self.graph[s]:
+                if t not in visited:
+                    queue.append(t)
+                    visited.add(t)
+                    parent[t] = s
+
+                    # Goal test
+                    if t == self.goal_grid:
+                        return self.backtrack(parent)
+        return []
+
+    def backtrack(self, parent):
+        """
+        If goal test is positive, backtrack thru parent dict and find the route
+        :param self:
+        :param parent:
+        :return: Answer
+        """
+        result = []
+        current_node = self.goal_grid
+        result.append(current_node)
+        while current_node != self.start_grid:
+            parent_node = parent[current_node]
+            current_node = parent_node
+            result.insert(0, current_node)
+        return result
+
+    def output_to_file(self, result_path):
+        with open("output.txt", "w+") as file:
+            if len(result_path) == 0:
+                file.write("FAIL")
+                return
+
 
 if __name__ == '__main__':
     input_path = "input.txt"
     agent = Agent()
     agent.input_data(input_path)
     agent.create_graph()
+    result_path = agent.bfs()
     print()
