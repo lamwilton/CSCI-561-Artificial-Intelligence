@@ -88,14 +88,14 @@ class Agent:
     def bfs(self):
         """
         Do BFS
-        :return: Answer or FAIL if no solution
+        :return: Answer and total cost. Empty list and 0 for no solution
         """
         visited = set()
         queue = deque()
         parent = {}
         # If entrance/goal grid not in graph, I should return FAIL
         if self.start_grid not in self.graph or self.goal_grid not in self.graph:
-            return []  # Empty list means FAIL
+            return [], 0  # Empty list means FAIL
         queue.append(self.start_grid)
         visited.add(self.start_grid)
         while queue:
@@ -109,9 +109,9 @@ class Agent:
                     # Goal test
                     if t == self.goal_grid:
                         path = self.backtrack(parent)
-                        result_cost = self.compute_cost(path)
-                        return result_cost
-        return []
+                        result_cost, total_cost = self.compute_cost(path)
+                        return result_cost, total_cost
+        return [], 0
 
     def backtrack(self, parent):
         """
@@ -145,7 +145,14 @@ class Agent:
                 total_cost += 1
         return result_cost, total_cost
 
-    def output_to_file(self, result_cost, total_cost):
+    @staticmethod
+    def output_to_file(result_cost, total_cost):
+        """
+        Output results
+        :param result_cost:
+        :param total_cost:
+        :return:
+        """
         if len(result_cost) == 0:
             with open("output.txt", "w+") as file:
                 file.write("FAIL")
