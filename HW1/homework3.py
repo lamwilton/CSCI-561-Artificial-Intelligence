@@ -86,10 +86,8 @@ class Agent:
         """
         if self.algorithm == 'BFS':
             return self.bfs()
-        elif self.algorithm == "UCS":
-            return self.ucs()
         else:
-            pass
+            return self.ucs()
 
     def bfs(self):
         """
@@ -124,7 +122,24 @@ class Agent:
                         return result_cost, total_cost
         return [], 0
 
+    @staticmethod
+    def heuristic(current_node, goal_node):
+        """
+        Compute straight line distance sqrt(a^2 + b^2 + c^2)
+        :param current_node:
+        :param goal_node:
+        :return:
+        """
+        result = 0
+        for i in range(0, 3):
+            result += (current_node[i] - goal_node[i]) ** 2
+        return result ** 0.5 * 10
+
     def ucs(self):
+        """
+        Djikstra algorithm for UCS or A*
+        :return:
+        """
         # If entrance/goal grid not in graph, I should return FAIL
         if self.start_grid not in self.graph or self.goal_grid not in self.graph:
             return [], 0  # Empty list means FAIL
@@ -147,9 +162,9 @@ class Agent:
             source = pq.get()
             s = source[1]
             for t, cost in self.graph[s].items():
-                alt = cost + dist[s]
-                if alt < dist[t]:
-                    dist[t] = alt
+                new_dist = cost + dist[s]
+                if new_dist < dist[t]:
+                    dist[t] = new_dist
                     parent[t] = s
 
                     # Remove and replace queue with lower cost priority
@@ -160,7 +175,7 @@ class Agent:
                         pass
                     pq.put((dist[t], t))
 
-                # Goal test, also need to check if cost to t is less than inf
+                # Goal test, also need to check if cost to t is less than MAX_DIST
                 # early exit should be OK because two steps will not be better than one step
                 if t == self.goal_grid and dist[t] < MAX_DIST:
                     path = self.backtrack(parent)
