@@ -122,17 +122,15 @@ class Agent:
                         return result_cost, total_cost
         return [], 0
 
-    @staticmethod
-    def heuristic(current_node, goal_node):
+    def heuristic(self, current_node):
         """
-        Compute straight line distance sqrt(a^2 + b^2 + c^2)
+        Compute straight line distance sqrt(a^2 + b^2 + c^2) to goal
         :param current_node:
-        :param goal_node:
         :return:
         """
         result = 0
         for i in range(0, 3):
-            result += (current_node[i] - goal_node[i]) ** 2
+            result += (current_node[i] - self.goal_grid[i]) ** 2
         return result ** 0.5 * 10
 
     def ucs(self):
@@ -147,6 +145,7 @@ class Agent:
         if self.start_grid == self.goal_grid:
             return [(self.start_grid, 0)], 0
 
+        # Initialize queue and set all distances to MAX_DIST except starting grid
         dist = {}
         MAX_DIST = 2 ** 31
         pq = queue.PriorityQueue()
@@ -156,7 +155,13 @@ class Agent:
                 pq.put((dist[node], node))
         parent = {}
         dist[self.start_grid] = 0
-        pq.put((dist[self.start_grid], self.start_grid))
+        if self.algorithm == "UCS":
+            pq.put((dist[self.start_grid], self.start_grid))
+        else:
+            # Estimated total cost (f_dist) = past cost (dist) + estimated future cost (self.heuristic)
+            # Store f_dist in the priority queue
+            total_dist = dist[self.start_grid] + self.heuristic(self.start_grid)
+            pq.put((total_dist, self.start_grid))
 
         while not pq.empty():
             source = pq.get()
@@ -173,7 +178,11 @@ class Agent:
                         del pq.queue[index_del]
                     except ValueError:
                         pass
-                    pq.put((dist[t], t))
+                    if self.algorithm == "UCS":
+                        pq.put((dist[t], t))
+                    else:
+                        total_dist = dist[t] + self.heuristic(t)
+                        pq.put((total_dist, t))
 
                 # Goal test, also need to check if cost to t is less than MAX_DIST
                 # early exit should be OK because two steps will not be better than one step
