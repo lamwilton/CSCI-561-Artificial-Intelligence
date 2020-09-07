@@ -41,7 +41,6 @@ class Agent:
             return True
         return False
 
-
     def create_graph(self):
         """
         Create the graph for the grid
@@ -136,18 +135,36 @@ class Agent:
         dist = {}
         pq = queue.PriorityQueue()
         for node in self.graph:
-            dist[node] = 2 ** 30
-            pq.put((dist[node], node))
+            if node != self.start_grid:
+                dist[node] = 2 ** 30
+                pq.put((dist[node], node))
         parent = {}
         dist[self.start_grid] = 0
         pq.put((dist[self.start_grid], self.start_grid))
 
         while not pq.empty():
             source = pq.get()
-            s = s[0]
-            cost = s[1]
-            # TODO
-        return
+            s = source[1]
+            for t, cost in self.graph[s].items():
+                alt = cost + dist[s]
+                if alt < dist[t]:
+                    dist[t] = alt
+                    parent[t] = s
+
+                    # Remove and replace queue with lower cost priority
+                    try:
+                        index_del = [x[1] for x in pq.queue].index(t)
+                        del pq.queue[index_del]
+                    except ValueError:
+                        pass
+                    pq.put((dist[t], t))
+
+                # Goal test, early exit should be OK because two steps will not be better than one step
+                if t == self.goal_grid:
+                    path = self.backtrack(parent)
+                    result_cost, total_cost = self.compute_cost(path)
+                    return result_cost, total_cost
+        return [], 0
 
     def backtrack(self, parent):
         """
@@ -179,6 +196,13 @@ class Agent:
             if self.algorithm == "BFS":
                 result_cost.append((result[i], 1))  # All steps has 1 cost
                 total_cost += 1
+            else:
+                # Calculate cost. Either 10 or 14.
+                cost = 10
+                if abs(result[i][0] - result[i - 1][0]) + abs(result[i][1] - result[i - 1][1]) + abs(result[i][2] - result[i - 1][2]) > 1:
+                    cost = 14
+                result_cost.append((result[i], cost))
+                total_cost += cost
         return result_cost, total_cost
 
     @staticmethod
