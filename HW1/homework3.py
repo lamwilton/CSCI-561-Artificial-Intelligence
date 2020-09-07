@@ -133,10 +133,11 @@ class Agent:
             return [(self.start_grid, 0)], 0
 
         dist = {}
+        MAX_DIST = 2 ** 31
         pq = queue.PriorityQueue()
         for node in self.graph:
             if node != self.start_grid:
-                dist[node] = 2 ** 30
+                dist[node] = MAX_DIST
                 pq.put((dist[node], node))
         parent = {}
         dist[self.start_grid] = 0
@@ -159,8 +160,9 @@ class Agent:
                         pass
                     pq.put((dist[t], t))
 
-                # Goal test, early exit should be OK because two steps will not be better than one step
-                if t == self.goal_grid:
+                # Goal test, also need to check if cost to t is less than inf
+                # early exit should be OK because two steps will not be better than one step
+                if t == self.goal_grid and dist[t] < MAX_DIST:
                     path = self.backtrack(parent)
                     result_cost, total_cost = self.compute_cost(path)
                     return result_cost, total_cost
