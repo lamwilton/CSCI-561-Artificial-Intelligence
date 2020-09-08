@@ -101,25 +101,23 @@ class Agent:
         # If entrance/goal grid not in graph, I should return FAIL
         if self.start_grid not in self.graph or self.goal_grid not in self.graph:
             return [], 0  # Empty list means FAIL
-        # If entrance is goal
-        if self.start_grid == self.goal_grid:
-            return [(self.start_grid, 0)], 0
 
         queue.append(self.start_grid)
         visited.add(self.start_grid)
         while queue:
             s = queue.popleft()
+            # Goal test
+            if s == self.goal_grid:
+                path = self.backtrack(parent)
+                result_cost, total_cost = self.compute_cost(path)
+                return result_cost, total_cost
+
             for t in self.graph[s]:
                 if t not in visited:
                     queue.append(t)
                     visited.add(t)
                     parent[t] = s
 
-                    # Goal test
-                    if t == self.goal_grid:
-                        path = self.backtrack(parent)
-                        result_cost, total_cost = self.compute_cost(path)
-                        return result_cost, total_cost
         return [], 0
 
     def heuristic(self, current_node):
@@ -141,9 +139,6 @@ class Agent:
         # If entrance/goal grid not in graph, I should return FAIL
         if self.start_grid not in self.graph or self.goal_grid not in self.graph:
             return [], 0  # Empty list means FAIL
-        # If entrance is goal
-        if self.start_grid == self.goal_grid:
-            return [(self.start_grid, 0)], 0
 
         # Initialize queue and set all distances to MAX_DIST except starting grid
         dist = {}
@@ -166,6 +161,12 @@ class Agent:
         while not pq.empty():
             source = pq.get()
             s = source[1]
+            # Goal test
+            if s == self.goal_grid:
+                path = self.backtrack(parent)
+                result_cost, total_cost = self.compute_cost(path)
+                return result_cost, total_cost
+
             for t, cost in self.graph[s].items():
                 new_dist = cost + dist[s]
                 if new_dist < dist[t]:
@@ -183,13 +184,6 @@ class Agent:
                     else:
                         total_dist = dist[t] + self.heuristic(t)
                         pq.put((total_dist, t))
-
-                # Goal test, also need to check if cost to t is less than MAX_DIST
-                # early exit should be OK because two steps will not be better than one step
-                if t == self.goal_grid and dist[t] < MAX_DIST:
-                    path = self.backtrack(parent)
-                    result_cost, total_cost = self.compute_cost(path)
-                    return result_cost, total_cost
         return [], 0
 
     def backtrack(self, parent):
