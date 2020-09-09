@@ -162,7 +162,7 @@ class Agent:
             source = pq.get()
             s = source[1]
             # Goal test
-            if s == self.goal_grid:
+            if s == self.goal_grid and dist[s] < MAX_DIST:
                 path = self.backtrack(parent)
                 result_cost, total_cost = self.compute_cost(path)
                 return result_cost, total_cost
