@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, defaultdict
 import queue
 
 
@@ -141,13 +141,10 @@ class Agent:
             return [], 0  # Empty list means FAIL
 
         # Initialize queue and set all distances to MAX_DIST except starting grid
-        dist = {}
         MAX_DIST = 2 ** 31
+        dist = defaultdict(lambda: MAX_DIST)  # Use defaultdict instead of adding all nodes with inf dist to queue to save time
         pq = queue.PriorityQueue()
-        for node in self.graph:
-            if node != self.start_grid:
-                dist[node] = MAX_DIST
-                pq.put((dist[node], node))
+
         parent = {}
         dist[self.start_grid] = 0
         if self.algorithm == "UCS":
@@ -162,7 +159,7 @@ class Agent:
             source = pq.get()
             s = source[1]
             # Goal test
-            if s == self.goal_grid and dist[s] < MAX_DIST:
+            if s == self.goal_grid:
                 path = self.backtrack(parent)
                 result_cost, total_cost = self.compute_cost(path)
                 return result_cost, total_cost
