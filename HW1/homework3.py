@@ -242,10 +242,10 @@ class Agent:
             file.write("\n")
             file.write(str(len(result_cost)))
             file.write("\n")
-            for node in result_cost:
+            for node in result_cost[:-1]:  # No linebreak for last line
                 file.write(" ".join([str(node[0][0]), str(node[0][1]), str(node[0][2]), str(node[1])]))
                 file.write("\n")
-
+            file.write(" ".join([str(result_cost[-1][0][0]), str(result_cost[-1][0][1]), str(result_cost[-1][0][2]), str(result_cost[-1][1])]))
 
 if __name__ == '__main__':
     input_path = "input.txt"
