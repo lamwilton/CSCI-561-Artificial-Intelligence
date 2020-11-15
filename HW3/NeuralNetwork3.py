@@ -16,9 +16,9 @@ def read_csv(train_image_file, test_image_file, train_label_file):
     :param train_label_file:
     :return:
     """
-    train_image = np.array(pd.read_csv(train_image_file, header=None))
+    train_image = np.array(pd.read_csv(train_image_file, header=None))[0:10000]
     test_image = np.array(pd.read_csv(test_image_file, header=None))
-    train_label = np.array(pd.read_csv(train_label_file, header=None))
+    train_label = np.array(pd.read_csv(train_label_file, header=None))[0:10000]
     return train_image, test_image, train_label
 
 
@@ -56,18 +56,19 @@ if __name__ == "__main__":
     output_file = "test_predictions.csv"
 
     # Hyperparameters
-    batch_size = 100
-    num_L1 = 784
-    num_L2 = 64
+    batch_size = 32
+
+    num_L2 = 128
     num_L3 = 10
     learning_rate = 0.001
     num_epoch = 200
 
     train_image, test_image, train_label = read_csv(train_image_file, test_image_file, train_label_file)
-    X_train, X_valid, y_train, y_valid = train_valid_split(train_image, train_label, test_size=0.1)
+    X_train, X_valid, y_train, y_valid = train_valid_split(train_image, train_label, test_size=0.05)
 
     N_train = X_train.shape[0]
     dimensions = X_train.shape[1]
+    num_L1 = dimensions
 
     # Model
     model = dict()

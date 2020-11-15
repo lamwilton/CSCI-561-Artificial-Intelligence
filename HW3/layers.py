@@ -49,6 +49,7 @@ class SoftmaxCrossEntropy:
         self.Y_onehot = None
         self.sum_exp = None
         self.prob = None
+        self.X_normalized = None
 
     def forward(self, X, Y):
         # One hot encode Y
@@ -58,11 +59,13 @@ class SoftmaxCrossEntropy:
         self.Y_onehot[np.arange(len(Y2)), Y2] = 1
 
         # Compute Softmax function
-        self.sum_exp = np.sum(np.exp(X), axis=1, keepdims=True)
-        self.prob = np.exp(X) / self.sum_exp
+        self.X_normalized = X - np.amax(X, axis=1, keepdims=True)
+        X_exp = np.exp(self.X_normalized)
+        self.sum_exp = np.sum(X_exp, axis=1, keepdims=True)
+        self.prob = X_exp / self.sum_exp
 
         # Compute loss function
-        forward_output = - np.sum(self.Y_onehot * (X - np.log(self.sum_exp))) / X.shape[0]
+        forward_output = - np.sum(self.Y_onehot * (self.X_normalized - np.log(self.sum_exp))) / X.shape[0]
         return forward_output
 
     def backward(self, X, Y):
