@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 
 
 class Dense:
@@ -8,8 +7,8 @@ class Dense:
     """
     def __init__(self, input_D, output_D):
         """
-        :param input_D: the dimensionality of the input example/instance of the forward pass
-        :param output_D: the dimensionality of the output example/instance of the forward pass
+        :param input_D: Input dimension
+        :param output_D: Output dimension
         """
         self.params = dict()
         # Xavier init https://towardsdatascience.com/building-neural-network-from-scratch-9c88535bf8e9
@@ -48,23 +47,24 @@ class Relu:
 class SoftmaxCrossEntropy:
     def __init__(self):
         self.Y_onehot = None
-        self.calib_logit = None
-        self.sum_exp_calib_logit = None
+        self.sum_exp = None
         self.prob = None
 
     def forward(self, X, Y):
         # One hot encode Y
-        self.Y_onehot = np.zeros(X.shape).reshape(-1)
-        self.Y_onehot[Y.astype(int).reshape(-1) + np.arange(X.shape[0]) * X.shape[1]] = 1.0
-        self.Y_onehot = self.Y_onehot.reshape(X.shape)
+        NUM_CLASSES = 10
+        Y2 = Y.ravel()
+        self.Y_onehot = np.zeros((len(Y2), NUM_CLASSES))
+        self.Y_onehot[np.arange(len(Y2)), Y2] = 1
 
-        self.calib_logit = X - np.amax(X, axis = 1, keepdims = True)
-        self.sum_exp_calib_logit = np.sum(np.exp(self.calib_logit), axis = 1, keepdims = True)
-        self.prob = np.exp(self.calib_logit) / self.sum_exp_calib_logit
+        # Compute Softmax function
+        self.sum_exp = np.sum(np.exp(X), axis=1, keepdims=True)
+        self.prob = np.exp(X) / self.sum_exp
 
-        forward_output = - np.sum(np.multiply(self.Y_onehot, self.calib_logit - np.log(self.sum_exp_calib_logit))) / X.shape[0]
+        # Compute loss function
+        forward_output = - np.sum(self.Y_onehot * (X - np.log(self.sum_exp))) / X.shape[0]
         return forward_output
 
     def backward(self, X, Y):
-        backward_output = - (self.Y_onehot - self.prob) / X.shape[0]
+        backward_output = (self.prob - self.Y_onehot) / X.shape[0]
         return backward_output

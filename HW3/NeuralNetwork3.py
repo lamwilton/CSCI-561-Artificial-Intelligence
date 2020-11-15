@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 import layers
+import sys
 
 
-def predict_label(f):
-    return np.argmax(f, axis=1).astype(float).reshape((f.shape[0], -1))
+def predict_label(a):
+    return np.argmax(a, axis=1).reshape((-1, 1))
 
 
 def read_csv(train_image_file, test_image_file, train_label_file, test_label_file):
@@ -55,14 +56,15 @@ if __name__ == "__main__":
     test_label_file = "Data/test_label.csv"
     train_label_file = "Data/train_label.csv"
 
+    output_file = "test_predictions.csv"
+
     # Hyperparameters
     batch_size = 100
-    dropout_rate = 0.2
     num_L1 = 784
     num_L2 = 64
     num_L3 = 10
     learning_rate = 0.001
-    num_epoch = 100
+    num_epoch = 40
 
     train_image, test_image, train_label, test_label = read_csv(train_image_file, test_image_file, train_label_file, test_label_file)
     X_train, X_valid, y_train, y_valid = train_valid_split(train_image, train_label, test_size=0.1)
@@ -96,24 +98,25 @@ if __name__ == "__main__":
             grad_x = model['L1'].backward(X_batch, grad_a1)
 
             # Update parameters
-            for module_name, module in model.items():
-
-                # check if a module has learnable parameters
-                if hasattr(module, 'params'):
-                    for key, _ in module.params.items():
-                        if len(key) == 1:
-                            g = module.params["d" + key]
-                            module.params[key] -= learning_rate * g
+            for module in [model['L1'], model['L2']]:
+                for key in ['W', 'b']:
+                    grad = module.params["d" + key]
+                    module.params[key] -= learning_rate * grad
 
         # Validation accuracy
-        val_acc = 0
         a1 = model['L1'].forward(X_valid)
         h1 = model['relu1'].forward(a1)
         a2 = model['L2'].forward(h1)
-        val_acc += np.sum(predict_label(a2) == y_valid)
+        val_acc = np.sum(predict_label(a2) == y_valid)
 
         print("Epoch: {} ".format(t) + "Loss: {} ".format(loss) + "acc: {}".format(val_acc))
 
-
-
-
+    # Testing
+    a1 = model['L1'].forward(test_image)
+    h1 = model['relu1'].forward(a1)
+    a2 = model['L2'].forward(h1)
+    predictions = predict_label(a2)
+    with open(output_file, "w+") as file:
+        for item in predictions:
+            file.write(str(item))
+            file.write("\n")
