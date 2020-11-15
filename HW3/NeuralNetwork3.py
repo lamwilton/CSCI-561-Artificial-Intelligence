@@ -55,7 +55,10 @@ if __name__ == "__main__":
 
     output_file = "test_predictions.csv"
 
+    SCALER = 255
+
     # Hyperparameters
+    test_size = 0.05
     batch_size = 32
 
     num_L2 = 128
@@ -64,7 +67,12 @@ if __name__ == "__main__":
     num_epoch = 200
 
     train_image, test_image, train_label = read_csv(train_image_file, test_image_file, train_label_file)
-    X_train, X_valid, y_train, y_valid = train_valid_split(train_image, train_label, test_size=0.05)
+
+    # Normalizing the data
+    train_image = train_image / SCALER
+    test_image = test_image / SCALER
+
+    X_train, X_valid, y_train, y_valid = train_valid_split(train_image, train_label, test_size=test_size)
 
     N_train = X_train.shape[0]
     dimensions = X_train.shape[1]
@@ -105,7 +113,7 @@ if __name__ == "__main__":
         a1 = model['L1'].forward(X_valid)
         h1 = model['relu1'].forward(a1)
         a2 = model['L2'].forward(h1)
-        val_acc = np.sum(predict_label(a2) == y_valid)
+        val_acc = np.sum(predict_label(a2) == y_valid) / X_valid.shape[0]
 
         print("Epoch: {} ".format(t) + "Loss: {} ".format(loss) + "acc: {}".format(val_acc))
 
