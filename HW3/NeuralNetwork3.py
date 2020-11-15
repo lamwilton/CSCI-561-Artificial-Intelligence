@@ -8,20 +8,18 @@ def predict_label(a):
     return np.argmax(a, axis=1).reshape((-1, 1))
 
 
-def read_csv(train_image_file, test_image_file, train_label_file, test_label_file):
+def read_csv(train_image_file, test_image_file, train_label_file):
     """
     Read data files
     :param train_image_file:
     :param test_image_file:
     :param train_label_file:
-    :param test_label_file:
     :return:
     """
     train_image = np.array(pd.read_csv(train_image_file, header=None))
     test_image = np.array(pd.read_csv(test_image_file, header=None))
     train_label = np.array(pd.read_csv(train_label_file, header=None))
-    test_label = np.array(pd.read_csv(test_label_file, header=None))
-    return train_image, test_image, train_label, test_label
+    return train_image, test_image, train_label
 
 
 def train_valid_split(train_image, train_label, test_size):
@@ -51,10 +49,9 @@ def get_minibatch(X_train, y_train, idx):
 
 if __name__ == "__main__":
     # File Paths
-    test_image_file = "Data/test_image.csv"
-    train_image_file = "Data/train_image.csv"
-    test_label_file = "Data/test_label.csv"
-    train_label_file = "Data/train_label.csv"
+    test_image_file = sys.argv[3]
+    train_image_file = sys.argv[1]
+    train_label_file = sys.argv[2]
 
     output_file = "test_predictions.csv"
 
@@ -64,9 +61,9 @@ if __name__ == "__main__":
     num_L2 = 64
     num_L3 = 10
     learning_rate = 0.001
-    num_epoch = 40
+    num_epoch = 200
 
-    train_image, test_image, train_label, test_label = read_csv(train_image_file, test_image_file, train_label_file, test_label_file)
+    train_image, test_image, train_label = read_csv(train_image_file, test_image_file, train_label_file)
     X_train, X_valid, y_train, y_valid = train_valid_split(train_image, train_label, test_size=0.1)
 
     N_train = X_train.shape[0]
@@ -115,7 +112,7 @@ if __name__ == "__main__":
     a1 = model['L1'].forward(test_image)
     h1 = model['relu1'].forward(a1)
     a2 = model['L2'].forward(h1)
-    predictions = predict_label(a2)
+    predictions = predict_label(a2).ravel()
     with open(output_file, "w+") as file:
         for item in predictions:
             file.write(str(item))
