@@ -3,6 +3,10 @@ import pandas as pd
 import layers
 
 
+def predict_label(f):
+    return np.argmax(f, axis=1).astype(float).reshape((f.shape[0], -1))
+
+
 def read_csv(train_image_file, test_image_file, train_label_file, test_label_file):
     """
     Read data files
@@ -96,7 +100,14 @@ if __name__ == "__main__":
                         if len(key) == 1:
                             g = module.params[key]
                             module.params[key] -= learning_rate * g
-        print("Epoch: {} ".format(t) + "Loss: {}".format(loss))
+
+        # Validation accuracy
+        val_acc = 0
+        a1 = model['L1'].forward(X_valid)
+        h1 = model['relu1'].forward(a1)
+        val_acc += np.sum(predict_label(h1) == y_valid)
+
+        print("Epoch: {} ".format(t) + "Loss: {} ".format(loss) + "acc: {}".format(val_acc))
 
 
 

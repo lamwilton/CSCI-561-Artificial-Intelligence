@@ -54,7 +54,9 @@ class SoftmaxCrossEntropy:
 
     def forward(self, X, Y):
         # One hot encode Y
-        self.Y_onehot = np.array(pd.get_dummies(np.ravel(Y)), dtype="float")
+        self.Y_onehot = np.zeros(X.shape).reshape(-1)
+        self.Y_onehot[Y.astype(int).reshape(-1) + np.arange(X.shape[0]) * X.shape[1]] = 1.0
+        self.Y_onehot = self.Y_onehot.reshape(X.shape)
 
         self.calib_logit = X - np.amax(X, axis = 1, keepdims = True)
         self.sum_exp_calib_logit = np.sum(np.exp(self.calib_logit), axis = 1, keepdims = True)
