@@ -59,9 +59,10 @@ if __name__ == "__main__":
     batch_size = 100
     dropout_rate = 0.2
     num_L1 = 784
-    num_L2 = 10
+    num_L2 = 64
+    num_L3 = 10
     learning_rate = 0.001
-    num_epoch = 10
+    num_epoch = 100
 
     train_image, test_image, train_label, test_label = read_csv(train_image_file, test_image_file, train_label_file, test_label_file)
     X_train, X_valid, y_train, y_valid = train_valid_split(train_image, train_label, test_size=0.1)
@@ -73,6 +74,7 @@ if __name__ == "__main__":
     model = dict()
     model['L1'] = layers.Dense(input_D=num_L1, output_D=num_L2)
     model['relu1'] = layers.Relu()
+    model['L2'] = layers.Dense(input_D=num_L2, output_D=num_L3)
     model['loss'] = layers.SoftmaxCrossEntropy()
 
     for t in range(num_epoch):
@@ -85,11 +87,13 @@ if __name__ == "__main__":
 
             a1 = model['L1'].forward(X_batch)
             h1 = model['relu1'].forward(a1)
-            loss = model['loss'].forward(h1, y_batch)
+            a2 = model['L2'].forward(h1)
+            loss = model['loss'].forward(a2, y_batch)
 
-            grad_a1 = model['loss'].backward(a1, y_batch)
-            grad_h1 = model['relu1'].backward(h1, grad_a1)
-            grad_x = model['L1'].backward(X_batch, grad_h1)
+            grad_a2 = model['loss'].backward(a2, y_batch)
+            grad_h1 = model['L2'].backward(h1, grad_a2)
+            grad_a1 = model['relu1'].backward(a1, grad_h1)
+            grad_x = model['L1'].backward(X_batch, grad_a1)
 
             # Update parameters
             for module_name, module in model.items():
@@ -98,14 +102,15 @@ if __name__ == "__main__":
                 if hasattr(module, 'params'):
                     for key, _ in module.params.items():
                         if len(key) == 1:
-                            g = module.params[key]
+                            g = module.params["d" + key]
                             module.params[key] -= learning_rate * g
 
         # Validation accuracy
         val_acc = 0
         a1 = model['L1'].forward(X_valid)
         h1 = model['relu1'].forward(a1)
-        val_acc += np.sum(predict_label(h1) == y_valid)
+        a2 = model['L2'].forward(h1)
+        val_acc += np.sum(predict_label(a2) == y_valid)
 
         print("Epoch: {} ".format(t) + "Loss: {} ".format(loss) + "acc: {}".format(val_acc))
 
