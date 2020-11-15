@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 
 class Dense:
@@ -46,24 +47,22 @@ class Relu:
 
 class SoftmaxCrossEntropy:
     def __init__(self):
-        self.expand_Y = None
+        self.Y_onehot = None
         self.calib_logit = None
         self.sum_exp_calib_logit = None
         self.prob = None
 
     def forward(self, X, Y):
         # One hot encode Y
-        self.expand_Y = np.zeros(X.shape).reshape(-1)
-        self.expand_Y[Y.astype(int).reshape(-1) + np.arange(X.shape[0]) * X.shape[1]] = 1.0
-        self.expand_Y = self.expand_Y.reshape(X.shape)
+        self.Y_onehot = np.array(pd.get_dummies(np.ravel(Y)), dtype="float")
 
         self.calib_logit = X - np.amax(X, axis = 1, keepdims = True)
         self.sum_exp_calib_logit = np.sum(np.exp(self.calib_logit), axis = 1, keepdims = True)
         self.prob = np.exp(self.calib_logit) / self.sum_exp_calib_logit
 
-        forward_output = - np.sum(np.multiply(self.expand_Y, self.calib_logit - np.log(self.sum_exp_calib_logit))) / X.shape[0]
+        forward_output = - np.sum(np.multiply(self.Y_onehot, self.calib_logit - np.log(self.sum_exp_calib_logit))) / X.shape[0]
         return forward_output
 
     def backward(self, X, Y):
-        backward_output = - (self.expand_Y - self.prob) / X.shape[0]
+        backward_output = - (self.Y_onehot - self.prob) / X.shape[0]
         return backward_output

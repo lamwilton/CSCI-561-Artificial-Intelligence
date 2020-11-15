@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import layers
 
+
 def read_csv(train_image_file, test_image_file, train_label_file, test_label_file):
     """
     Read data files
@@ -44,7 +45,7 @@ def get_minibatch(X_train, y_train, idx):
 
 
 if __name__ == "__main__":
-    # Constants
+    # File Paths
     test_image_file = "Data/test_image.csv"
     train_image_file = "Data/train_image.csv"
     test_label_file = "Data/test_label.csv"
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     dropout_rate = 0.2
     num_L1 = 784
     num_L2 = 10
-    _learning_rate = 0.001
+    learning_rate = 0.001
     num_epoch = 10
 
     train_image, test_image, train_label, test_label = read_csv(train_image_file, test_image_file, train_label_file, test_label_file)
@@ -86,7 +87,7 @@ if __name__ == "__main__":
             grad_h1 = model['relu1'].backward(h1, grad_a1)
             grad_x = model['L1'].backward(X_batch, grad_h1)
 
-            ### gradient_update ###
+            # Update parameters
             for module_name, module in model.items():
 
                 # check if a module has learnable parameters
@@ -94,7 +95,7 @@ if __name__ == "__main__":
                     for key, _ in module.params.items():
                         if len(key) == 1:
                             g = module.params[key]
-                            module.params[key] -= _learning_rate * g
+                            module.params[key] -= learning_rate * g
         print("Epoch: {} ".format(t) + "Loss: {}".format(loss))
 
 
